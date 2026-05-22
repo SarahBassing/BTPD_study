@@ -126,20 +126,41 @@
   pd_colony_grid_2024 <- colony_grid_id(pd_colonies[[2]], buff = 25, grid_size = 1)
   
   writeRaster(pd_colony_grid_2023[[1]], "./Outputs/colony_2023_grids_1m.tif", overwrite = TRUE)
-  save(pd_colony_grid_2023[[2]], file = "./Outputs/colony_2023_grid_1m_values.RData")
+  save(pd_colony_grid_2023, file = "./Outputs/colony_2023_grid_1m_values.RData")
   writeRaster(pd_colony_grid_2024[[1]], "./Outputs/colony_2024_grids_1m.tif", overwrite = TRUE)
-  save(pd_colony_grid_2024[[2]], file = "./Outputs/colony_2024_grid_1m_values.RData")
+  save(pd_colony_grid_2024, file = "./Outputs/colony_2024_grid_1m_values.RData")
   
-  #' #'  Create grid superimposed over colonies (2024 colonies)
-  #' pd_2024_reproj <- st_transform(pd_2024, crs = 32614) 
-  #' poly_vect <- vect(pd_2024_reproj) 
-  #' r_template <- rast(poly_vect, resolution = 1) # resolution in meters
-  #' r_numb <- r_template
-  #' values(r_numb) <- 1:ncell(r_template)
-  #' names(r_numb) <- "cell_id"
-  #' #'  Mask out raster cells that to not overlap colony boundaries
-  #' r_masked <- mask(r_numb, poly_vect)
-  #' print(r_masked)
-  #' plot(r_masked)
-  #' writeRaster(r_masked, "./Outputs/colony_2024_grid_basic.tif", overwrite = TRUE)
+  #'  Visualize the raster stack
+  plot(pd_colony_grid_2024[[1]]$cell_id)    # unique grid cells
+  plot(pd_colony_grid_2024[[1]]$colony_id)  # unique colony polygons
+  plot(pd_colony_grid_2024[[1]]$group_id)   # unique colony groups (colonies within 50 m of each other)
+  
+  #'  Review output data frame
+  head(pd_colony_grid_2024[[2]])
+  
+  #'  Randomly sample each colony grid
+  sample_grid <- function(dat, n) {
+    site_select <- dat %>%
+      group_by(group_id) %>%
+      slice_sample(n = n) %>%
+      ungroup() %>%
+      st_as_sf(coords = c("x", "y"), crs = "EPSG:32615") %>%
+      st_transform(crs = crs(pd_2024)) %>%
+      mutate(Long = st_coordinates(.)[,1],
+             Lat = st_coordinates(.)[,2]) %>%
+      st_drop_geometry()
+    return(site_select)
+  }
+  set.seed(5222026)
+  random_cells_2023 <- sample_grid(pd_colony_grid_2023[[2]], n = 15) # over sampling to allow for flexibility in the field
+  random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 15)
+  
+  #'  Save
+  write_csv(random_cells_2023, file = "./Outputs/random_cells_2023_colonies.csv") 
+  write_csv(random_cells_2024, file = "./Outputs/random_cells_2024_colonies.csv") 
+  
+  #'  Visualize randome sites
+  random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(pd_2024))
+  plot(random_cells_2024_sf[1])
+  mapview(random_cells_2024_sf, zcol = "cell_id")
   
