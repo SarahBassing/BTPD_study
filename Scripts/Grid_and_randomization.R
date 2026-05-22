@@ -125,7 +125,10 @@
   pd_colony_grid_2023 <- colony_grid_id(pd_colonies[[1]], buff = 25, grid_size = 1)
   pd_colony_grid_2024 <- colony_grid_id(pd_colonies[[2]], buff = 25, grid_size = 1)
   
-  writeRaster(pd_colony_grids, "./Outputs/colony_2023_2024_grids_1m.tif", overwrite = TRUE)
+  writeRaster(pd_colony_grid_2023[[1]], "./Outputs/colony_2023_grids_1m.tif", overwrite = TRUE)
+  save(pd_colony_grid_2023[[2]], file = "./Outputs/colony_2023_grid_1m_values.RData")
+  writeRaster(pd_colony_grid_2024[[1]], "./Outputs/colony_2024_grids_1m.tif", overwrite = TRUE)
+  save(pd_colony_grid_2024[[2]], file = "./Outputs/colony_2024_grid_1m_values.RData")
   
   #' #'  Create grid superimposed over colonies (2024 colonies)
   #' pd_2024_reproj <- st_transform(pd_2024, crs = 32614) 
