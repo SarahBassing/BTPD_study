@@ -152,8 +152,8 @@
     return(site_select)
   }
   set.seed(5222026)
-  random_cells_2023 <- sample_grid(pd_colony_grid_2023[[2]], n = 15) # over sampling to allow for flexibility in the field
-  random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 15)
+  random_cells_2023 <- sample_grid(pd_colony_grid_2023[[2]], n = 30) # over sampling to allow for flexibility in the field
+  random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 30)
   
   #'  Save
   write_csv(random_cells_2023, file = "./Outputs/random_cells_2023_colonies.csv") 
