@@ -164,8 +164,19 @@
   plot(random_cells_2024_sf[1])
   mapview(random_cells_2024_sf, zcol = "cell_id")
   
-  #'  Convert polygons to format that can be loaded onto a GPS unit (KML?)
+  #'  Convert spatial data to .GPX files for OnX and Garmin GPS units
+  sample_pts <- random_cells_2024_sf %>%
+    #'  Relabel cell ID column
+    rename("ID" = "cell_id") %>%
+    #' Transform projection to WGS 84 (lat/long)
+    st_transform(., crs = "EPSG:4326")
+  #'  Export as .GPX file format
+  write_sf(sample_pts, file = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   
+  #'  Convert colony polygons to .KML flie for OnX and Garmin GPS units
+  colony_polygons <- pd_2024 %>%
+    st_transform(., crs = "EPSG:4326")
+  write_sf(colony_polygons, "colony_polygons_2024.kml", dataset_options = "GPX_USE_EXTENSIONS=YES")
   
   
   
