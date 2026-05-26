@@ -151,7 +151,7 @@
       st_drop_geometry()
     return(site_select)
   }
-  set.seed(5222026)
+  set.seed(5262026)
   random_cells_2023 <- sample_grid(pd_colony_grid_2023[[2]], n = 30) # over sampling to allow for flexibility in the field
   random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 30)
   
@@ -159,8 +159,13 @@
   write_csv(random_cells_2023, file = "./Outputs/random_cells_2023_colonies.csv") 
   write_csv(random_cells_2024, file = "./Outputs/random_cells_2024_colonies.csv") 
   
-  #'  Visualize randome sites
+  #'  Visualize random sites
   random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(pd_2024))
   plot(random_cells_2024_sf[1])
   mapview(random_cells_2024_sf, zcol = "cell_id")
+  
+  #'  Convert polygons to format that can be loaded onto a GPS unit (KML?)
+  
+  
+  
   
