@@ -166,8 +166,8 @@
   
   #'  Convert spatial data to .GPX files for OnX and Garmin GPS units
   sample_pts <- random_cells_2024_sf %>%
-    #'  Relabel cell ID column
-    rename("ID" = "cell_id") %>%
+    #' #'  Relabel cell ID column
+    #' rename("ID" = "cell_id") %>%
     #' Transform projection to WGS 84 (lat/long)
     st_transform(., crs = "EPSG:4326")
   #'  Export as .GPX file format
