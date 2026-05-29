@@ -121,22 +121,28 @@
     
     return(out)
   }
-  #'  Generate grids for each year of data, remember that buff and grid_size are in meters
-  pd_colony_grid_2023 <- colony_grid_id(pd_colonies[[1]], buff = 25, grid_size = 1)
-  pd_colony_grid_2024 <- colony_grid_id(pd_colonies[[2]], buff = 25, grid_size = 1)
+  #' #'  Generate grids for each year of data, remember that buff and grid_size are in meters
+  #' pd_colony_grid_2023 <- colony_grid_id(pd_colonies[[1]], buff = 25, grid_size = 1)
+  #' pd_colony_grid_2024 <- colony_grid_id(pd_colonies[[2]], buff = 25, grid_size = 1)
+  #' 
+  #' writeRaster(pd_colony_grid_2023[[1]], "./Outputs/colony_2023_grids_1m.tif", overwrite = TRUE)
+  #' save(pd_colony_grid_2023, file = "./Outputs/colony_2023_grid_1m_values.RData")
+  #' writeRaster(pd_colony_grid_2024[[1]], "./Outputs/colony_2024_grids_1m.tif", overwrite = TRUE)
+  #' save(pd_colony_grid_2024, file = "./Outputs/colony_2024_grid_1m_values.RData")
+  #' 
+  #' #'  Visualize the raster stack
+  #' plot(pd_colony_grid_2024[[1]]$cell_id)    # unique grid cells
+  #' plot(pd_colony_grid_2024[[1]]$colony_id)  # unique colony polygons
+  #' plot(pd_colony_grid_2024[[1]]$group_id)   # unique colony groups (colonies within 50 m of each other)
+  #' 
+  #' #'  Review output data frame
+  #' head(pd_colony_grid_2024[[2]])
   
-  writeRaster(pd_colony_grid_2023[[1]], "./Outputs/colony_2023_grids_1m.tif", overwrite = TRUE)
-  save(pd_colony_grid_2023, file = "./Outputs/colony_2023_grid_1m_values.RData")
-  writeRaster(pd_colony_grid_2024[[1]], "./Outputs/colony_2024_grids_1m.tif", overwrite = TRUE)
-  save(pd_colony_grid_2024, file = "./Outputs/colony_2024_grid_1m_values.RData")
-  
-  #'  Visualize the raster stack
-  plot(pd_colony_grid_2024[[1]]$cell_id)    # unique grid cells
-  plot(pd_colony_grid_2024[[1]]$colony_id)  # unique colony polygons
-  plot(pd_colony_grid_2024[[1]]$group_id)   # unique colony groups (colonies within 50 m of each other)
-  
-  #'  Review output data frame
-  head(pd_colony_grid_2024[[2]])
+  #'  Load raster and grid data so you don't have to remake these
+  pd_colony_grid_2023 <- rast("./Outputs/colony_2023_grids_1m.tif")
+  load("./Outputs/colony_2023_grid_1m_values.RData")
+  pd_colony_grid_2024 <- rast("./Outputs/colony_2024_grids_1m.tif")
+  load("./Outputs/colony_2024_grid_1m_values.RData")
   
   #'  Randomly sample each colony grid
   sample_grid <- function(dat, n) {
