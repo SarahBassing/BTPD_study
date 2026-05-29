@@ -162,8 +162,8 @@
   random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 30)
   
   #'  Save
-  write_csv(random_cells_2023, file = "./Outputs/random_cells_2023_colonies.csv") 
-  write_csv(random_cells_2024, file = "./Outputs/random_cells_2024_colonies.csv") 
+  write_csv(random_cells_2023, file = paste0("./Outputs/random_cells_2023_colonies_", Sys.Date(), ".csv")) 
+  write_csv(random_cells_2024, file = paste0("./Outputs/random_cells_2024_colonies_", Sys.Date(), ".csv")) 
   
   #'  Visualize random sites
   random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(pd_2024))
@@ -177,7 +177,8 @@
     #' Transform projection to WGS 84 (lat/long)
     st_transform(., crs = "EPSG:4326")
   #'  Export as .GPX file format
-  write_sf(sample_pts, file = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
+  # st_write(sample_pts, dsn = paste0("./Outputs/random_points_", Sys.Date(), ".shp"))
+  write_sf(sample_pts, dsn = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   
   #'  Convert colony polygons to .KML flie for OnX and Garmin GPS units
   colony_polygons <- pd_2024 %>%
