@@ -167,6 +167,7 @@
     
     return(out)
   }
+
   #'  Generate grids for each year of data, remember that buff and grid_size are in meters
   pd_colony_grid_2023 <- colony_grid_id(pd_colonies[[1]], buff = 25, grid_size = 1)
   pd_colony_grid_2024 <- colony_grid_id(pd_colonies[[2]], buff = 25, grid_size = 1)
@@ -186,7 +187,14 @@
   
   #'  Review output data frame
   head(pd_colony_grid_2024[[2]])
+
   
+  #'  Load raster and grid data so you don't have to remake these
+  pd_colony_grid_2023 <- rast("./Outputs/colony_2023_grids_1m.tif")
+  load("./Outputs/colony_2023_grid_1m_values.RData")
+  pd_colony_grid_2024 <- rast("./Outputs/colony_2024_grids_1m.tif")
+  load("./Outputs/colony_2024_grid_1m_values.RData")
+
   #'  Randomly sample each colony grid
   sample_grid <- function(dat, n) {
     site_select <- dat %>%
@@ -205,8 +213,8 @@
   random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 30)
   
   #'  Save
-  write_csv(random_cells_2023, file = "./Outputs/random_cells_2023_colonies.csv") 
-  write_csv(random_cells_2024, file = "./Outputs/random_cells_2024_colonies.csv") 
+  write_csv(random_cells_2023, file = paste0("./Outputs/random_cells_2023_colonies_", Sys.Date(), ".csv")) 
+  write_csv(random_cells_2024, file = paste0("./Outputs/random_cells_2024_colonies_", Sys.Date(), ".csv")) 
   
   #'  Visualize random sites
   random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(pd_2024))
@@ -220,7 +228,8 @@
     #' Transform projection to WGS 84 (lat/long)
     st_transform(., crs = "EPSG:4326")
   #'  Export as .GPX file format
-  write_sf(sample_pts, file = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
+  # st_write(sample_pts, dsn = paste0("./Outputs/random_points_", Sys.Date(), ".shp"))
+  write_sf(sample_pts, dsn = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   
   #'  Convert colony polygons to .KML flie for OnX and Garmin GPS units
   colony_polygons <- pd_2024 %>%
