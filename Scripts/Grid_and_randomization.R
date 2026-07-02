@@ -231,7 +231,7 @@
   # st_write(sample_pts, dsn = paste0("./Outputs/random_points_", Sys.Date(), ".shp"))
   write_sf(sample_pts, dsn = paste0("random_points_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   
-  #'  Convert colony polygons to .KML flie for OnX and Garmin GPS units
+  #'  Convert colony polygons to .KML file for OnX and Garmin GPS units
   colony_polygons <- pd_2024 %>%
     st_transform(., crs = "EPSG:4326")
   write_sf(colony_polygons, "colony_polygons_2024.kml", dataset_options = "GPX_USE_EXTENSIONS=YES")
