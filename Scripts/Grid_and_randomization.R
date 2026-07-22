@@ -243,7 +243,7 @@
   #'  Only do once! Load saved grids below
   pd_colony_grid_2023 <- colony_grid_id(pd_2024, buff = 25, grid_size = 1)
   pd_colony_grid_2024 <- colony_grid_id(pd_2024, buff = 25, grid_size = 1)
-  pd_colony_grid_2026 <- colony_grid_id(pd_2026_union, buff = 25, grid_size = 1)
+  pd_colony_grid_2026 <- colony_grid_id(pd_2026_final_union, buff = 25, grid_size = 1)
   
   writeRaster(pd_colony_grid_2023[[1]], "./Spatial/Exported_data/colony_2023_grids_1m.tif", overwrite = TRUE)
   save(pd_colony_grid_2023, file = "./Spatial/Exported_data/colony_2023_grid_1m_values.RData")
@@ -294,8 +294,10 @@
   random_cells_2024 <- sample_grid(pd_colony_grid_2024[[2]], n = 30)
   random_cells_2026 <- sample_grid(pd_colony_grid_2026[[2]], n = 30)
   
-  #'  Grab random locations from colonies 1 and 5 (don't seem to exist in 2024 polygons)
-  random_cells_colony_1_5 <- filter(random_cells_2026, colony_id == 1 | colony_id == 5)
+  #'  Grab random locations from specific colonies
+  random_cells_colony_newpts <- filter(random_cells_2026, colony_id == 15 | colony_id == 22 | 
+                                         colony_id == 23 | colony_id == 24 | colony_id == 25 | 
+                                         colony_id == 26 | colony_id == 27 | colony_id == 28 | colony_id == 34)
   
   #'  Save
   write_csv(random_cells_2023, file = paste0("./Spatial/Exported_data/random_cells_2023_colonies_", Sys.Date(), ".csv")) 
@@ -303,9 +305,9 @@
   write_csv(random_cells_2026, file = paste0("./Spatial/Exported_data/random_cells_2026_colonies_", Sys.Date(), ".csv")) 
   
   #'  Convert to sf object 
-  random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(pd_2024))
-  random_cells_2026_sf <- st_as_sf(random_cells_2026, coords = c("Long", "Lat"), crs = crs(pd_2024))
-  random_cells_2026_1and5_sf <- st_as_sf(random_cells_colony_1_5, coords = c("Long", "Lat"), crs = crs(pd_2024))
+  random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(wgs84))
+  random_cells_2026_sf <- st_as_sf(random_cells_2026, coords = c("Long", "Lat"), crs = crs(wgs84))
+  random_cells_2026_newpts_sf <- st_as_sf(random_cells_colony_newpts, coords = c("Long", "Lat"), crs = crs(wgs84))
   
   #'  Visualize
   plot(random_cells_2024_sf[1])
@@ -315,7 +317,7 @@
   mapview(random_cells_2026_sf, zcol = "cell_id")
   
   plot(random_cells_2026_1and5_sf[1])
-  mapview(pd_2024) + mapview(pd_2026_union, zcol = "colony_id") + mapview(random_cells_2026_1and5_sf)
+  mapview(pd_2026_final_union, zcol = "colony_id") + mapview(random_cells_2026_newpts_sf)
   
   #'  -----------------------
   ####  Export spatial data  ####
@@ -329,11 +331,12 @@
   }
   sample_pts_2024 <- convert_to_gpx(random_cells_2024_sf)
   sample_pts_2026 <- convert_to_gpx(random_cells_2026_sf)
-  # sample_pts_2026 <- convert_to_gpx(random_cells_2026_1and5_sf)
+  sample_pts_2026_newpt <- convert_to_gpx(random_cells_2026_newpts_sf)
   
   #'  Export as .GPX file format
   write_sf(sample_pts_2024, dsn = paste0("./Spatial/Exported_data/random_points_2024_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
-  write_sf(sample_pts_2026, dsn = paste0("./Spatial/Exported_data/random_points_2026_colonies_1and5_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
+  write_sf(sample_pts_2026, dsn = paste0("./Spatial/Exported_data/random_points_2026_colonies_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
+  write_sf(sample_pts_2026_newpt, dsn = paste0("./Spatial/Exported_data/random_points_2026_select_colonies_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   
   #'  Convert colony polygons to .KML file for OnX and Garmin GPS units
   colony_polygons_2024 <- pd_2024 %>%
@@ -484,8 +487,13 @@
   #'  Distribution of treatment and control colonies (make sure now obvious spatial pattern)
   mapview(pd_2026_final_union) + mapview(experiment_colonies, zcol = "treatment")
   
-  
-  
-  
+  #'  Save selected colonies for experiment 
+  #'  Shapefile
+  st_write(experiment_colonies, dsn = "./Spatial/Exported_data/experimental_colonies.shp")
+  #'  CSV file
+  experiment_colony_set <- experiment_colonies %>%
+    as.data.frame(.) %>%
+    dplyr::select(-geometry)
+  write_csv(experiment_colony_set, file = "./Data/experimental_colonies.csv")
   
   
