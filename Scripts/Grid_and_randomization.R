@@ -479,8 +479,10 @@
     #' Indicate which colonies are treatment vs control 
     mutate(treatment = ifelse(colony_id %in% treatment_centroids$colony_id, TRUE, FALSE)) %>%
     #'  Arrange by colony size and fence to more easily double check selection
-    arrange(colony_size, fence_present_fake, treatment) %>%
-    relocate(treatment, .before = geometry)
+    arrange(colony_size, acres, fence_present, treatment) %>%
+    relocate(fence_present, .after = colony_size) %>%
+    relocate(treatment, .after = fence_present) %>%
+    dplyr::select(-fence_present_fake)
   View(experiment_colonies)
   
   #'  Visualize 
