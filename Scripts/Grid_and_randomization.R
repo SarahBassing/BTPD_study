@@ -243,7 +243,7 @@
   #'  Only do once! Load saved grids below
   pd_colony_grid_2023 <- colony_grid_id(pd_2024, buff = 25, grid_size = 1)
   pd_colony_grid_2024 <- colony_grid_id(pd_2024, buff = 25, grid_size = 1)
-  pd_colony_grid_2026 <- colony_grid_id(pd_2026_union, buff = 25, grid_size = 1)
+  pd_colony_grid_2026 <- colony_grid_id(pd_2026_final_union, buff = 25, grid_size = 1)
   
   writeRaster(pd_colony_grid_2023[[1]], "./Spatial/Exported_data/colony_2023_grids_1m.tif", overwrite = TRUE)
   save(pd_colony_grid_2023, file = "./Spatial/Exported_data/colony_2023_grid_1m_values.RData")
