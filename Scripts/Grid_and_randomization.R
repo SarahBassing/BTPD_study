@@ -34,6 +34,7 @@
   #'  Review data layers in .gpx file
   st_layers("./Spatial/BRR_pdogs/2026/Tracks_num.gpx")  
   st_layers("./Spatial/BRR_pdogs/2026/Colonies.gpx")
+  # st_layers("./Spatial/BRR_pdogs/2026/Selected Data from Colonies.gpx")
   #'  Load tracks layer for mapping 2026 colonies
   pd_2026 <- st_read("./Spatial/BRR_pdogs/2026/Tracks_num.gpx", layer = "tracks") %>%
     dplyr::select(c(name, geometry))
@@ -41,6 +42,8 @@
     dplyr::select(c(name, geometry))
   pd_2026_col19 <- st_read("./Spatial/BRR_pdogs/2026/Colony 19.gpx", layer = "tracks") %>%
     dplyr::select(c(name, geometry))
+  # pd_2026_col35and36 <- st_read("./Spatial/BRR_pdogs/2026/Selected Data from Colonies.gpx", layer = "tracks") %>%
+  #   dplyr::select(c(name, geometry))
   
   #'  Grab geographic coordinate system of pd_2026 (WGS84)
   wgs84 <- crs(pd_2026_final)
@@ -106,25 +109,39 @@
            colony_id = as.numeric(colony_id)) %>%
     #'  Re-project to be consistent with historic data - EPSG:32614 is WGS 84 / UTM Zone 14N
     st_transform(., crs = "EPSG:32615") 
+  #' pd_2026_35and36 <- pd_2026_col35and36 %>%
+  #'   #'  Assign same colony ID to colonies with multiple polygons
+  #'   mutate(colony = name,
+  #'          colony = ifelse(grepl("35-", name), "Colony 35", colony),
+  #'          colony_id = substring(colony, 8),
+  #'          colony_id = as.numeric(colony_id)) %>%
+  #'   #'  Re-project to be consistent with historic data - EPSG:32614 is WGS 84 / UTM Zone 14N
+  #'   st_transform(., crs = "EPSG:32615") 
   #'  Fix topology issues that arise from creating geometries with GPS tracking data
   pd_2026_fix <- pd_2026 %>%
     st_make_valid(.) 
   pd_2026_final_fix <- pd_2026_final %>%
     st_make_valid(.) 
+  # pd_2026_35and36_fix <- pd_2026_35and36 %>%
+  #   st_make_valid(.) 
   #'  Review what types of geometries are included
   table(st_geometry_type(pd_2026_fix))          # should be all MULTILINESTRING
   table(st_geometry_type(pd_2026_final_fix))    # should be all MULTILINESTRING
   #'  Remove any tiny or degenerated bits 
   pd_2026_fix <- pd_2026_fix[!st_is_empty(pd_2026_fix), ]
   pd_2026_final_fix <- pd_2026_final_fix[!st_is_empty(pd_2026_final_fix), ]
+  # pd_2026_35and36_fix <- pd_2026_35and36_fix[!st_is_empty(pd_2026_35and36_fix), ]
   #'  Convert to polygons
   pd_2026_fix <- pd_2026_fix %>%
     st_cast(., "POLYGON") 
   pd_2026_final_fix <- pd_2026_final_fix %>%
     st_cast(., "POLYGON")
+  # pd_2026_35and36_fix <- pd_2026_35and36_fix %>%
+  #   st_cast(., "POLYGON")
   #'  Visualize colony polygons
   mapview(pd_2026_fix, zcol = "colony_id")
   mapview(pd_2026_final_fix, zcol = "colony_id")
+  # mapview(pd_2026_35and36_fix, zcol = "colony_id")
   
   #'  Join slightly non-overlapping polygons from same colony to create single 
   #'  polygon per colony (typically arises when a fence line cuts through a colony)
@@ -179,7 +196,7 @@
     dplyr::select(-geometry)
   write_csv(pd_2026_clean, "./Spatial/BRR_pdogs/2026/pd_2026_colony_attributes.csv")
   
-  #'  Review spatial extent of colonies (originally used 2024 data b/c more colonies were mapped than early 2026)
+  #'  Review spatial extent of colonies 
   st_bbox(pd_2026_final) # WGS 84 / UTM 14N
   
   #'  -------------------------------------------
@@ -298,6 +315,7 @@
   random_cells_colony_newpts <- filter(random_cells_2026, colony_id == 15 | colony_id == 22 | 
                                          colony_id == 23 | colony_id == 24 | colony_id == 25 | 
                                          colony_id == 26 | colony_id == 27 | colony_id == 28 | colony_id == 34)
+  random_cells_colony_35and36_newpts <- filter(random_cells_2026, colony_id == 35 | colony_id == 36)
   
   #'  Save
   write_csv(random_cells_2023, file = paste0("./Spatial/Exported_data/random_cells_2023_colonies_", Sys.Date(), ".csv")) 
@@ -308,6 +326,7 @@
   random_cells_2024_sf <- st_as_sf(random_cells_2024, coords = c("Long", "Lat"), crs = crs(wgs84))
   random_cells_2026_sf <- st_as_sf(random_cells_2026, coords = c("Long", "Lat"), crs = crs(wgs84))
   random_cells_2026_newpts_sf <- st_as_sf(random_cells_colony_newpts, coords = c("Long", "Lat"), crs = crs(wgs84))
+  random_cells_2026_35and36_newpts_sf <- st_as_sf(random_cells_colony_35and36_newpts, coords = c("Long", "Lat"), crs = crs(wgs84))
   
   #'  Visualize
   plot(random_cells_2024_sf[1])
@@ -316,8 +335,9 @@
   plot(random_cells_2026_sf[1])
   mapview(random_cells_2026_sf, zcol = "cell_id")
   
-  plot(random_cells_2026_1and5_sf[1])
+  plot(random_cells_2026_35and36_newpts_sf[1])
   mapview(pd_2026_final_union, zcol = "colony_id") + mapview(random_cells_2026_newpts_sf)
+  mapview(pd_2026_final_union, zcol = "colony_id") + mapview(random_cells_2026_35and36_newpts_sf)
   
   #'  -----------------------
   ####  Export spatial data  ####
@@ -332,12 +352,14 @@
   sample_pts_2024 <- convert_to_gpx(random_cells_2024_sf)
   sample_pts_2026 <- convert_to_gpx(random_cells_2026_sf)
   sample_pts_2026_newpt <- convert_to_gpx(random_cells_2026_newpts_sf)
+  sample_pts_2026_35and36_newpt <- convert_to_gpx(random_cells_2026_35and36_newpts_sf)
   
   #'  Export as .GPX file format
   write_sf(sample_pts_2024, dsn = paste0("./Spatial/Exported_data/random_points_2024_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   write_sf(sample_pts_2026, dsn = paste0("./Spatial/Exported_data/random_points_2026_colonies_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
   write_sf(sample_pts_2026_newpt, dsn = paste0("./Spatial/Exported_data/random_points_2026_select_colonies_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
-  
+  write_sf(random_cells_2026_35and36_newpts_sf, dsn = paste0("./Spatial/Exported_data/random_points_2026_colonies_35and36_", Sys.Date(), ".gpx"), dataset_options = "GPX_USE_EXTENSIONS=YES")
+    
   #'  Convert colony polygons to .KML file for OnX and Garmin GPS units
   colony_polygons_2024 <- pd_2024 %>%
     st_transform(., crs = "EPSG:4326")
@@ -449,13 +471,48 @@
   View(experiment_centroids)
   ####  NOTE: Double check each size class has 2 observations per fence classification!
   
+  #  Redraw specifically for new small colonies (many from previous draw were
+  #  recently poisoned or plagued out so not very good colonies for experiment)
+  set.seed(5696)   #45975 
+  #'  Generalized random tessellation stratified (GRTS) sample with legacy sites
+  sample_set_v2 <- spsurvey::grts(
+    sframe = colony_centroids_sf,                  # finite set of spatial points to choose from
+    n_base = c(Small = 4, Medium = 4, Large = 4),  # sample size for each strata
+    stratum_var = "colony_size",                   # column name of strata
+    caty_var = "fence_present_fake",               # column name of second strata with unequal sampling probability (even though in this case it is equal)
+    caty_n = c(Y = 2, N = 2),                      # vector of sample sizes per second strata (equal sampling probability in this case)
+    legacy_var = "legacy_colony",                  # column name of legacy indicator (non-legacy colonies are NA)
+    n_over = 2,                                    # over sample in each size strata - Must have sufficient colonies in each n_base strata for this to work 
+    DesignID = "colony_id"                         # naming structure for each site's identifier selected in the sample
+  )
+  #'  Review named lists within sample_set
+  names(sample_set_v2)
+  
+  #'  Selected colonies
+  legacy_centroids_v2 <- sample_set_v2$sites_legacy
+  random_centroids_v2 <- sample_set_v2$sites_base
+  oversample_centroids_v2 <- sample_set_v2$sites_over
+  experiment_centroids_v2 <- bind_rows(legacy_centroids_v2, random_centroids_v2, oversample_centroids_v2) %>%
+    dplyr::select(c(colony_id, acres, colony_size, fence_present, fence_present_fake, legacy_colony, 
+                    wgt, siteuse, geometry)) %>%
+    arrange(colony_size, fence_present_fake)
+  View(experiment_centroids_v2)
+  #'  Grab just the small colonies
+  experiment_centroids_v2_Small <- experiment_centroids_v2 %>%
+    filter(colony_size == "Small")
+  
+  #'  Combine original draw (Medium and Large colonies) with new draw (Small colonies)
+  experiment_centroids_final <- experiment_centroids %>%
+    filter(colony_size == "Medium" | colony_size == "Large") %>%
+    bind_rows(experiment_centroids_v2_Small)
+  
   #'  Set new seed for reproducibility
   set.seed(45761) #72027
   
   #'  Randomly select which colonies will be treatment sites, including all legacy sites 
   #'  (non-selected colonies will default as control sites)
   treatment_set <- spsurvey::grts(
-    sframe = experiment_centroids,                 # finite set of spatial points to choose from
+    sframe = experiment_centroids_final,           # finite set of spatial points to choose from
     n_base = c(Small = 2, Medium = 2, Large = 2),  # sample size for each strata
     stratum_var = "colony_size",                   # column name of strata
     caty_var = "fence_present_fake",               # column name of second strata with unequal sampling probability (even though in this case it is equal)
@@ -475,7 +532,7 @@
   ####  NOTE: Double check each size class has at least 1 observation per fence classification!
   
   #'  Save polygons of randomly selected colonies
-  experiment_colonies <- colony_dat[colony_dat$colony_id %in% experiment_centroids$colony_id,] %>%
+  experiment_colonies <- colony_dat[colony_dat$colony_id %in% experiment_centroids_final$colony_id,] %>%
     #' Indicate which colonies are treatment vs control 
     mutate(treatment = ifelse(colony_id %in% treatment_centroids$colony_id, TRUE, FALSE)) %>%
     #'  Arrange by colony size and fence to more easily double check selection
@@ -491,11 +548,11 @@
   
   #'  Save selected colonies for experiment 
   #'  Shapefile
-  st_write(experiment_colonies, dsn = "./Spatial/Exported_data/experimental_colonies.shp")
+  st_write(experiment_colonies, dsn = paste0("./Spatial/Exported_data/experimental_colonies_", Sys.Date(), ".shp"))
   #'  CSV file
   experiment_colony_set <- experiment_colonies %>%
     as.data.frame(.) %>%
     dplyr::select(-geometry)
-  write_csv(experiment_colony_set, file = "./Data/experimental_colonies.csv")
+  write_csv(experiment_colony_set, file = paste0("./Data/experimental_colonies_", Sys.Date(), ".csv"))
   
   
